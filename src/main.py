@@ -8,3 +8,4 @@ from Datasets import datasets
 cwdata = datasets()
 cwdata.load_data("Data.xlsx")
 print("Label: ", cwdata.target)
+print("Features: ", cwdata.data) 
