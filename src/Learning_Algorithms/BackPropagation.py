@@ -3,11 +3,10 @@ Created on Feb 20, 2017
 
 @author: Inthuch Therdchanaku
 '''
+import numpy as np
 
 def BackPropagation(dataset, network):
-    for w in network.weights:
-        # w = a small random number
-        print(w)
+    # step size parameter
+    p = 0.1
     
     return network
-    
