@@ -1,11 +1,12 @@
 '''
-Created on Feb 14, 2017
+Created on Feb 20, 2017
 
 @author: Inthuch Therdchanakul
 '''
-from Datasets import datasets
+from Data.Datasets import datasets
+import pandas as pd
 
-cwdata = datasets()
-cwdata.load_data("Data.xlsx")
-print("Label: ", cwdata.target)
-print("Features: ", cwdata.data) 
+df = pd.read_excel("Data.xlsx")
+df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
+ds = datasets()
+ds.create_data(df, "Index flood")
