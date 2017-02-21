@@ -4,13 +4,14 @@ Created on Feb 20, 2017
 @author: Inthuch Therdchanakul
 '''
 import random
+import numpy as np
 
 BIAS = 1
 
 class Perceptron():
     def __init__(self, n_inputs ):
         self.n_inputs = n_inputs
-        self.set_weights( [random.uniform(0,1) for x in range(0,n_inputs+1)] ) # +1 for bias weight
+        self.set_weights( np.array([random.uniform(-2./n_inputs,2./n_inputs) for x in range(0,n_inputs+1)])) # +1 for bias weight
 
     def sum(self, inputs ):
         # Does not include the bias
@@ -25,7 +26,7 @@ class Perceptron():
 class PerceptronLayer():
     def __init__(self, n_perceptrons, n_inputs):
             self.n_perceptrons = n_perceptrons
-            self.perceptrons = [Perceptron( n_inputs ) for _ in range(0,self.n_perceptrons)]
+            self.perceptrons = np.array([Perceptron( n_inputs ) for _ in range(0,self.n_perceptrons)])
 
     def __str__(self):
         return 'Layer:\n\t'+'\n\t'.join([str(perceptron) for perceptron in self.perceptrons])+''
@@ -55,11 +56,14 @@ class MLP():
         else:
             # If we don't require hidden layers
             self.layers = [PerceptronLayer( self.n_outputs,self.n_inputs )]
+        self.layers = np.asarray(self.layers)
 
     def __str__(self):
         return '\n'.join([str(i+1)+' '+str(layer) for i,layer in enumerate(self.layers)])
 
+def sigmoid_function(s):
+    return 1/(1 + np.e**-s)
+
 if __name__ == "__main__":
-    network = MLP(5, 1, 1, 1)
+    network = MLP(8, 1, 5, 1)
     print(network)
-        
