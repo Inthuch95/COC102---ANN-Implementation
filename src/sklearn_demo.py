@@ -11,11 +11,12 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
-from Data.Datasets import pre_processing
+from Data.Datasets import pre_processing, standardise
 
 df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
 df = pre_processing(df)
+df = standardise(df)
 features = np.array(df.drop("Index flood", axis=1)) 
 ds = datasets(df, features, "Index flood")
 print(ds.feature_names)

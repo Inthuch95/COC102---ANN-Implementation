@@ -7,9 +7,16 @@ import pandas as pd
 import numpy as np
 from Data.Datasets import datasets
 from Data.Datasets import pre_processing
+from Data.Datasets import standardise
 
 df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
 df = pre_processing(df)
+max_arr = []
+min_arr = []
+for col in df.columns.values:
+    max_arr.append(np.max(df[col]))
+    min_arr.append(np.min(df[col]))
+df = standardise(df)
 features = np.array(df.drop("Index flood", axis=1)) 
-ds = datasets(df, features, "Index flood")
+ds = datasets(df, features, "Index flood", max_arr, min_arr)
