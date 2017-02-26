@@ -6,12 +6,12 @@ Created on Feb 20, 2017
 import pandas as pd
 import numpy as np
 from Data.Datasets import datasets
-from Data.Datasets import pre_processing
-from Data.Datasets import standardise
+from Data.Preprocessing import data_cleansing
+from Data.Preprocessing import standardise
 
 df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
-df = pre_processing(df)
+df = data_cleansing(df)
 max_arr = []
 min_arr = []
 for col in df.columns.values:

@@ -11,14 +11,19 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
-from Data.Datasets import pre_processing, standardise
+from Data.Preprocessing import data_cleansing, standardise
 
 df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
-df = pre_processing(df)
+df = data_cleansing(df)
+max_arr = []
+min_arr = []
+for col in df.columns.values:
+    max_arr.append(np.max(df[col]))
+    min_arr.append(np.min(df[col]))
 df = standardise(df)
 features = np.array(df.drop("Index flood", axis=1)) 
-ds = datasets(df, features, "Index flood")
+ds = datasets(df, features, "Index flood", max_arr, min_arr)
 print(ds.feature_names)
 
 X = ds.features
