@@ -11,11 +11,12 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
-from Data.Preprocessing import data_cleansing, standardise
+from Data.Preprocessing import data_cleansing, standardise, remove_outliers
 
 df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
 df = data_cleansing(df)
+df = remove_outliers(df, "PROPWET")
 max_arr = []
 min_arr = []
 for col in df.columns.values:
@@ -36,4 +37,4 @@ clf.fit(X_train, y_train)
 
 accuracy = clf.score(X_test, y_test)
 predictions = clf.predict(X_test)
-print(accuracy)
+print("Confidence: ", accuracy)

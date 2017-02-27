@@ -12,10 +12,15 @@ def data_cleansing(df):
     # drop missing data
     df.dropna(inplace=True)
     print("After dropping missing data: ", len(df))
-    # eliminate outliers by keeping only the ones that are within 3 standard deviations
+    # drop negative values
     df = df[df.apply(lambda x: x >= 0).all(axis=1)]
-    df = df[df.apply(lambda x: np.abs(x - np.mean(x)) / np.std(x) < 3).all(axis=1)]
-    print("After dropping outliers: ", len(df))
+    print("After dropping negative values: ", len(df))
+    
+    return df
+
+def remove_outliers(df, feature):
+    # eliminate outliers by keeping only the ones that are within 3 standard deviations
+    df = df[((df[feature] - np.mean(df[feature])) / np.std(df[feature])).abs() < 3]
     
     return df
 
