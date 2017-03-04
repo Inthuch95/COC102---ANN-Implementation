@@ -11,7 +11,7 @@ from Data.Preprocessing import remove_outliers
 from Data.Preprocessing import standardise
 
 df = pd.read_excel("Data.xlsx")
-df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
+df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
 df = data_cleansing(df)
 df = remove_outliers(df, "PROPWET")
 max_arr = []

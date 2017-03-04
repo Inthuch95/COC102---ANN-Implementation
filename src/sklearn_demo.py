@@ -14,7 +14,7 @@ from sklearn.metrics import accuracy_score
 from Data.Preprocessing import data_cleansing, standardise, remove_outliers
 
 df = pd.read_excel("Data.xlsx")
-df = df[["AREA", "LDP","PROPWET", "RMED-1D", "SAAR", "Index flood"]]
+df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
 df = data_cleansing(df)
 df = remove_outliers(df, "PROPWET")
 max_arr = []
@@ -29,7 +29,7 @@ print(ds.feature_names)
 
 X = ds.features
 y = ds.label
-X = preprocessing.scale(X)
+#X = preprocessing.scale(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 clf = LinearRegression()
