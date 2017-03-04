@@ -23,8 +23,7 @@ def BackPropagation(dataset, network):
             for perceptron in layer.perceptrons:
                 tot = np.sum(perceptron.weights * inp)
                 outputs = np.append(outputs, sigmoid_function(tot))
-            inp = np.array([BIAS])
-            inp = np.append(inp, outputs)
+            inp = np.append([BIAS], outputs)
         print(outputs)
         
     return network
