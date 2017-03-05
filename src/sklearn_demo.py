@@ -17,14 +17,11 @@ df = pd.read_excel("Data.xlsx")
 df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
 df = data_cleansing(df)
 df = remove_outliers(df, "PROPWET")
-max_arr = []
-min_arr = []
-for col in df.columns.values:
-    max_arr.append(np.max(df[col]))
-    min_arr.append(np.min(df[col]))
+max_label = np.max(df["Index flood"])
+min_label = np.min(df["Index flood"])
 df = standardise(df)
 features = np.array(df.drop("Index flood", axis=1)) 
-ds = datasets(df, features, "Index flood", max_arr, min_arr)
+ds = datasets(df, features, "Index flood", max_label, min_label)
 print(ds.feature_names)
 
 X = ds.features
