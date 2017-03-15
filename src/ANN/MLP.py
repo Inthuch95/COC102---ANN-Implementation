@@ -55,7 +55,3 @@ class MLP():
 
     def __str__(self):
         return '\n'.join([str(i+1)+' '+str(layer) for i,layer in enumerate(self.layers)])
-
-if __name__ == "__main__":
-    network = MLP(2, 1, 3, 1)
-    print(network)
