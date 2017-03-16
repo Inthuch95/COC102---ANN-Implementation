@@ -10,44 +10,81 @@ from Data.Datasets import datasets
 from Data.Preprocessing import data_cleansing
 from Data.Preprocessing import remove_outliers
 from Data.Preprocessing import standardise
+import pickle
 
 class BackPropagation():
     def __init__(self, dataset, network):
         self.BIAS = 1
+        self.P = 0.1
         self.dataset = dataset
         self.network = network
-        self.s_val = np.array([])
-        self.u_val = np.array([])
-        self.c = 1
-        self.error_val = np.array([])
+        self.u = None
+        self.prediction = np.array([])
     
-    def forward_pass(self):
-        inp = np.array([self.BIAS, 1, 0])
-        self.s_val = np.array([])
-        self.u_val = np.array([])
+    def forward_pass(self, inp):
+        # clear previous values
+        s_val = np.array([])
         self.u_prime = np.array([])
         # forward pass for one row of features
         for layer in self.network.layers[1:]:
             # empty output from previous layer
             outputs = np.array([])
             for perceptron in layer.perceptrons:
+                perceptron.u = inp
                 s = np.sum(perceptron.weights * inp)
-                self.s_val = np.append(self.s_val, s)
+                s_val = np.append(s_val, s)
                 outputs = np.append(outputs, self.sigmoid_function(s))
-            self.u_val = np.append(self.u_val, outputs)
             inp = np.append([self.BIAS], outputs)
-        self.u_prime = np.array([self.sigmoid_function(s, derivative=True) for s in self.s_val])
-        
-        print("output: ", outputs)
-        print("S: ", self.s_val)
-        print("U: ", self.u_val)
-        print("U': ", self.u_prime)
+        self.u = outputs[-1]
+        self.u_prime = np.array([self.sigmoid_function(s, derivative=True) for s in s_val])
             
-    def backward_pass(self):
-        pass
+    def backward_pass(self, label):
+        # propagate deltas backward from output layer to input layer
+        self.network.layers[-1].perceptrons[0].delta = (label - self.u) * (self.u_prime[-1])
+        # update weights
+        self.network.layers[-1].perceptrons[0] = self.update(self.network.layers[-1].perceptrons[0])
         
-    def update(self):
-        pass
+        output_delta = self.network.layers[-1].perceptrons[0].delta
+        # calculate deltas in hidden layer
+        for i in range(len(self.network.layers[1].perceptrons),0,-1):
+            weight = self.network.layers[-1].perceptrons[0].weights[i]
+            self.network.layers[1].perceptrons[i-1].delta = np.sum(weight * output_delta) * (self.u_prime[i-1])
+            self.network.layers[1].perceptrons[i-1] = self.update(self.network.layers[1].perceptrons[i-1])
+        
+    def update(self, perceptron):
+        # update every weight linked to the perceptron using deltas
+        perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
+        return perceptron
+    
+    def train(self, epoch=1):
+        for i in range(epoch):
+            for feature, label in zip(self.dataset.features, self.dataset.label):
+                self.forward_pass(feature)
+                self.backward_pass(label)
+            print("epoch: ", i)
+        
+        with open("ANN.pickle", "wb") as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+    
+        self.predict(self.dataset.features[-1])
+        print("After %s epoch \n%s" % (epoch, self.network))
+        print("Correct values: ", self.dataset.label[-1])
+        print("Prediction: ", self.prediction)
+        
+    def predict(self, inp):
+        # clear previous values
+        s_val = np.array([])
+        # forward pass for one row of features
+        for layer in self.network.layers[1:]:
+            # empty output from previous layer
+            outputs = np.array([])
+            for perceptron in layer.perceptrons:
+                perceptron.u = inp
+                s = np.sum(perceptron.weights * inp)
+                s_val = np.append(s_val, s)
+                outputs = np.append(outputs, self.sigmoid_function(s))
+            inp = np.append([self.BIAS], outputs)
+        self.prediction = outputs
     
     def sigmoid_function(self, s, derivative=False):
         if derivative:
@@ -56,7 +93,8 @@ class BackPropagation():
             return 1/(1 + np.e**-s)
     
 if __name__ == "__main__":
-    network = MLP(2, 1, 2, 1)
+    # change first param to 2 if dummy data is used
+    network = MLP(3, 1, 2, 1)
     
     df = pd.read_excel("../Data.xlsx")
     df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
@@ -71,14 +109,20 @@ if __name__ == "__main__":
     features = np.array(df.drop("Index flood", axis=1)) 
     ds = datasets(df, features, "Index flood", max_label, min_label)
     
-    network.layers[1].perceptrons[0].weights = [1., 3., 4.]
-    network.layers[1].perceptrons[1].weights = [-6., 6., 5.]
-    network.layers[2].perceptrons[0].weights = [-3.92, 2., 4.]
+#     network.layers[1].perceptrons[0].weights = np.array([1., 3., 4.])
+#     network.layers[1].perceptrons[1].weights = np.array([-6., 6., 5.])
+#     network.layers[2].perceptrons[0].weights = np.array([-3.92, 2., 4.])
     
     clf = BackPropagation(ds, network)
     print("Before training: ", clf.network)
     # perform 1 epoch
-    clf.forward_pass()
-    clf.backward_pass()
-    clf.update()
+    clf.train(100)
+#     for _ in range(20000):
+#         clf.forward_pass(np.array([clf.BIAS, 1, 0], dtype="float64"))
+#         clf.backward_pass(1)
+#         clf.update()
+#     print(clf.network)
+#     print("Correct values: ", 1)
+#     print()
+#     print("Prediction: ", clf.prediction[-1])
     #print("After training: ", network)

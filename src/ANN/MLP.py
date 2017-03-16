@@ -10,12 +10,14 @@ class Perceptron():
     def __init__(self, n_inputs ):
         self.n_inputs = n_inputs
         self.set_weights( np.array([random.uniform(-2./n_inputs,2./n_inputs) for _ in range(0,n_inputs+1)])) # +1 for bias weight
+        self.delta = None
+        self.u = None
 
     def set_weights(self, weights ):
         self.weights = weights
 
     def __str__(self):
-        return 'Weights: %s, Bias: %s' % ( str(self.weights[1:]),str(self.weights[0]) )
+        return 'u: %s, Bias: %s, Weight: %s, Delta: %s' % ( str(self.u), str(self.weights[0]),str(self.weights[1:]), str(self.delta) )
 
 class PerceptronLayer():
     def __init__(self, n_perceptrons, n_inputs):
@@ -52,6 +54,9 @@ class MLP():
             # If we don't require hidden layers
             self.layers = [PerceptronLayer( self.n_outputs,self.n_inputs )]
         self.layers = np.asarray(self.layers)
+        
+        for perceptron in self.layers[0].perceptrons:
+            perceptron.set_weights(np.array([None,None]))
 
     def __str__(self):
         return '\n'.join([str(i+1)+' '+str(layer) for i,layer in enumerate(self.layers)])
