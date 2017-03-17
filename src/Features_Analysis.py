@@ -14,7 +14,7 @@ def visualise(feature):
     df = data_cleansing(df)
     ylim = np.max(df[feature])
     df = remove_outliers(df, feature)
-    x = [idx for idx in range(len(df))]
+    x = np.array([idx for idx in range(len(df))])
     y = np.array(df[feature])  
     plt.ylim(0, ylim)
     plt.scatter(x, y)

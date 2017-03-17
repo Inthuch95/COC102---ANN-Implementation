@@ -11,6 +11,7 @@ from Data.Preprocessing import data_cleansing
 from Data.Preprocessing import remove_outliers
 from Data.Preprocessing import standardise
 import pickle
+import matplotlib.pyplot as plt
 
 class BackPropagation():
     def __init__(self, dataset, network):
@@ -62,14 +63,9 @@ class BackPropagation():
                 self.forward_pass(feature)
                 self.backward_pass(label)
             print("epoch: ", i)
-        
-        with open("ANN.pickle", "wb") as f:
-            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
-    
-        self.predict(self.dataset.features[-1])
-        print("After %s epoch \n%s" % (epoch, self.network))
-        print("Correct values: ", self.dataset.label[-1])
-        print("Prediction: ", self.prediction)
+#         print("After %s epoch \n%s" % (epoch, self.network))
+#         print("Correct values: ", self.dataset.label[-1])
+#         print("Prediction: ", self.prediction)
         
     def predict(self, inp):
         # clear previous values
@@ -77,14 +73,14 @@ class BackPropagation():
         # forward pass for one row of features
         for layer in self.network.layers[1:]:
             # empty output from previous layer
-            outputs = np.array([])
+            output = np.array([])
             for perceptron in layer.perceptrons:
                 perceptron.u = inp
                 s = np.sum(perceptron.weights * inp)
                 s_val = np.append(s_val, s)
-                outputs = np.append(outputs, self.sigmoid_function(s))
-            inp = np.append([self.BIAS], outputs)
-        self.prediction = outputs
+                output = np.append(output, self.sigmoid_function(s))
+            inp = np.append([self.BIAS], output)
+        self.prediction = np.append(self.prediction, output)
     
     def sigmoid_function(self, s, derivative=False):
         if derivative:
@@ -94,7 +90,7 @@ class BackPropagation():
     
 if __name__ == "__main__":
     # change first param to 2 if dummy data is used
-    network = MLP(3, 1, 2, 1)
+    network = MLP(3, 1, 5, 1)
     
     df = pd.read_excel("../Data.xlsx")
     df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
@@ -115,8 +111,21 @@ if __name__ == "__main__":
     
     clf = BackPropagation(ds, network)
     print("Before training: ", clf.network)
-    # perform 1 epoch
-    clf.train(100)
+    # default is train for 1 epoch
+    clf.train(10000)
+    x = np.array([idx for idx in range(len(clf.dataset.features))])
+    y_observed = clf.dataset.label
+    y_modelled = clf.prediction 
+    f1 = plt.figure()
+    f2 = plt.figure()
+    ax1 = f1.add_subplot(111)
+    ax1.plot(x, y_observed, label="Observed")
+    ax1.plot(x, y_modelled, color="r", label="Modelled")
+    ax1.legend()
+    
+    ax2 = f2.add_subplot(111)
+    ax2.scatter(y_observed, y_modelled)
+    plt.show()
 #     for _ in range(20000):
 #         clf.forward_pass(np.array([clf.BIAS, 1, 0], dtype="float64"))
 #         clf.backward_pass(1)
