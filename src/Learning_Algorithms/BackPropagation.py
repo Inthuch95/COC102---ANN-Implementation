@@ -4,23 +4,20 @@ Created on Feb 20, 2017
 @author: Inthuch Therdchanakul
 '''
 import numpy as np
-from ANN.MLP import MLP
-import pandas as pd
-from Data.Datasets import datasets
-from Data.Preprocessing import data_cleansing
-from Data.Preprocessing import remove_outliers
-from Data.Preprocessing import standardise
-import pickle
-import matplotlib.pyplot as plt
+from math import sqrt
 
 class BackPropagation():
-    def __init__(self, dataset, network):
+    def __init__(self, train_set, val_set, test_set, network):
         self.BIAS = 1
         self.P = 0.1
-        self.dataset = dataset
+        self.train_set = train_set
+        self.val_set = val_set
+        self.test_set = test_set
         self.network = network
         self.u = None
-        self.prediction = np.array([])
+        self.predictions = np.array([])
+        self.msre = None
+        self.rmse = None
     
     def forward_pass(self, inp):
         # clear previous values
@@ -58,80 +55,46 @@ class BackPropagation():
         return perceptron
     
     def train(self, epoch=1):
+        self.msre = np.zeros(epoch)
+        self.rmse = np.zeros(epoch)
         for i in range(epoch):
-            for feature, label in zip(self.dataset.features, self.dataset.label):
+            for feature, label in zip(self.train_set.features, self.train_set.label):
                 self.forward_pass(feature)
                 self.backward_pass(label)
-            print("epoch: ", i)
-#         print("After %s epoch \n%s" % (epoch, self.network))
-#         print("Correct values: ", self.dataset.label[-1])
-#         print("Prediction: ", self.prediction)
-        
-    def predict(self, inp):
-        # clear previous values
-        s_val = np.array([])
-        # forward pass for one row of features
-        for layer in self.network.layers[1:]:
-            # empty output from previous layer
-            output = np.array([])
-            for perceptron in layer.perceptrons:
-                perceptron.u = inp
-                s = np.sum(perceptron.weights * inp)
-                s_val = np.append(s_val, s)
-                output = np.append(output, self.sigmoid_function(s))
-            inp = np.append([self.BIAS], output)
-        self.prediction = np.append(self.prediction, output)
+            self.predict(self.val_set.features)
+            self.validate_msre(i)
+            self.validate_rmse(i)
+            print("epoch: ", str(i+1))
     
+    # make predictions using trained model     
+    def predict(self, features):
+        self.predictions = np.array([])
+        for feature in features:
+            # clear previous values
+            s_val = np.array([])
+            # forward pass for one row of features
+            for layer in self.network.layers[1:]:
+                # empty output from previous layer
+                output = np.array([])
+                for perceptron in layer.perceptrons:
+                    perceptron.u = feature
+                    s = np.sum(perceptron.weights * feature)
+                    s_val = np.append(s_val, s)
+                    output = np.append(output, self.sigmoid_function(s))
+                feature = np.append([self.BIAS], output)
+            self.predictions = np.append(self.predictions, output)
+            
+    # calculate mean squared relative error from validation set
+    def validate_msre(self, index):
+        self.msre[index] = np.mean(((self.predictions - self.val_set.label)/self.val_set.label)**2)
+    
+    # calculate root mean squared error from validation set    
+    def validate_rmse(self, index):
+        self.rmse[index] = sqrt(np.mean((self.predictions - self.val_set.label)**2))
+    
+    # activation function
     def sigmoid_function(self, s, derivative=False):
         if derivative:
             return self.sigmoid_function(s) * (1 - self.sigmoid_function(s))
         else:
             return 1/(1 + np.e**-s)
-    
-if __name__ == "__main__":
-    # change first param to 2 if dummy data is used
-    network = MLP(3, 1, 5, 1)
-    
-    df = pd.read_excel("../Data.xlsx")
-    df = df[["AREA", "BFIHOST", "PROPWET", "Index flood"]]
-    df = data_cleansing(df)
-    df = remove_outliers(df, "PROPWET")
-    max_label = np.max(df["Index flood"])
-    min_label = np.min(df["Index flood"])
-    df = standardise(df)
-    # add bias column
-    df["BIAS"] = 1
-    df = df[["BIAS", "AREA", "BFIHOST", "PROPWET", "Index flood"]]
-    features = np.array(df.drop("Index flood", axis=1)) 
-    ds = datasets(df, features, "Index flood", max_label, min_label)
-    
-#     network.layers[1].perceptrons[0].weights = np.array([1., 3., 4.])
-#     network.layers[1].perceptrons[1].weights = np.array([-6., 6., 5.])
-#     network.layers[2].perceptrons[0].weights = np.array([-3.92, 2., 4.])
-    
-    clf = BackPropagation(ds, network)
-    print("Before training: ", clf.network)
-    # default is train for 1 epoch
-    clf.train(10000)
-    x = np.array([idx for idx in range(len(clf.dataset.features))])
-    y_observed = clf.dataset.label
-    y_modelled = clf.prediction 
-    f1 = plt.figure()
-    f2 = plt.figure()
-    ax1 = f1.add_subplot(111)
-    ax1.plot(x, y_observed, label="Observed")
-    ax1.plot(x, y_modelled, color="r", label="Modelled")
-    ax1.legend()
-    
-    ax2 = f2.add_subplot(111)
-    ax2.scatter(y_observed, y_modelled)
-    plt.show()
-#     for _ in range(20000):
-#         clf.forward_pass(np.array([clf.BIAS, 1, 0], dtype="float64"))
-#         clf.backward_pass(1)
-#         clf.update()
-#     print(clf.network)
-#     print("Correct values: ", 1)
-#     print()
-#     print("Prediction: ", clf.prediction[-1])
-    #print("After training: ", network)

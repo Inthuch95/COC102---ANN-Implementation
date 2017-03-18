@@ -35,10 +35,10 @@ val_set = datasets(df_val, features_val, "Index flood", max_label, min_label)
 test_set = datasets(df_test, features_test, "Index flood", max_label, min_label)
 
 network = MLP(3, 1, 5, 1)
-clf = BackPropagation(train_set, network)
-clf.train(10000)
-for feature in test_set.features:
-    clf.predict(feature)
+clf = BackPropagation(train_set, val_set, test_set, network)
+epoch = 20000
+clf.train(epoch)
+clf.predict(test_set.features)
 
 filename = input("Enter file name: ")
 filename = "".join([filename, ".pickle"]) 
@@ -47,9 +47,11 @@ with open(filename, "wb") as f:
     
 x = np.array([idx for idx in range(len(test_set.features))])
 y_observed = test_set.label
-y_modelled = clf.prediction 
+y_modelled = clf.predictions
 f1 = plt.figure()
 f2 = plt.figure()
+f3 = plt.figure()
+f4 = plt.figure()
 ax1 = f1.add_subplot(111)
 ax1.plot(x, y_observed, label="Observed")
 ax1.plot(x, y_modelled, color="r", label="Modelled")
@@ -57,4 +59,13 @@ ax1.legend()
 
 ax2 = f2.add_subplot(111)
 ax2.scatter(y_observed, y_modelled)
+
+ax3 = f3.add_subplot(111)
+x = np.array([idx for idx in range(epoch)])
+y = clf.msre
+ax3.plot(x, y)
+
+ax4 = f4.add_subplot(111)
+y = clf.rmse
+ax4.plot(x, y)
 plt.show()
