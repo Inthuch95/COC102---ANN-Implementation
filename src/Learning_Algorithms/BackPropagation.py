@@ -20,6 +20,7 @@ class BackPropagation():
         self.msre = None
         self.rmse = None
         self.momentum = False
+        self.sa = False
     
     def forward_pass(self, inp):
         # clear previous values
@@ -52,6 +53,12 @@ class BackPropagation():
             self.network.layers[1].perceptrons[i-1] = self.update(self.network.layers[1].perceptrons[i-1])
         
     def update(self, perceptron):
+        # Simulated annealing
+        # q = learning rate
+        # p = step decay
+        # r = total number of epoch
+        # x = weight?
+        
         # update every weight linked to the perceptron using deltas
         if self.momentum:
             # apply momentum
@@ -60,14 +67,20 @@ class BackPropagation():
             weight_new = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
             weight_changed = weight_new - perceptron.weights
             perceptron.weights = weight_new + (self.learning_rate * weight_changed)
+        elif self.sa:
+            self.simulated_annealing()
         else:
             perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
         return perceptron
     
-    def train(self, epoch=1, momentum=False):
+    def simulated_annealing(self):
+        print("simulated annealing")
+    
+    def train(self, epoch=1, momentum=False, sa=False):
         self.msre = np.zeros(epoch)
         self.rmse = np.zeros(epoch)
         self.momentum = momentum
+        self.sa = sa
         for i in range(epoch):
             for feature, label in zip(self.train_set.features, self.train_set.label):
                 self.forward_pass(feature)

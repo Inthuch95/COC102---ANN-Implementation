@@ -34,9 +34,9 @@ train_set = datasets(df_train, features_train, "Index flood", max_label, min_lab
 val_set = datasets(df_val, features_val, "Index flood", max_label, min_label)
 test_set = datasets(df_test, features_test, "Index flood", max_label, min_label)
 
-network = MLP(3, 1, 5, 1)
+network = MLP(3, 1, 2, 1)
 clf = BackPropagation(train_set, val_set, test_set, network)
-epoch = 20000
+epoch = 100
 clf.train(epoch, momentum=True)
 clf.predict(test_set.features)
 
@@ -53,8 +53,10 @@ f2 = plt.figure()
 f3 = plt.figure()
 f4 = plt.figure()
 ax1 = f1.add_subplot(111)
-ax1.plot(x, y_observed, label="Observed")
-ax1.plot(x, y_modelled, color="r", label="Modelled")
+ax1.set_xlabel("Index")
+ax1.set_ylabel("Actual/Predicted")
+ax1.plot(x, y_observed, label="Actual Values")
+ax1.plot(x, y_modelled, color="r", label="Predicted Values")
 ax1.legend()
 
 ax2 = f2.add_subplot(111)
