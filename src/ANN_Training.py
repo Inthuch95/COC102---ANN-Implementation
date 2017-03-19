@@ -37,7 +37,7 @@ test_set = datasets(df_test, features_test, "Index flood", max_label, min_label)
 network = MLP(3, 1, 5, 1)
 clf = BackPropagation(train_set, val_set, test_set, network)
 epoch = 20000
-clf.train(epoch)
+clf.train(epoch, momentum=True)
 clf.predict(test_set.features)
 
 filename = input("Enter file name: ")

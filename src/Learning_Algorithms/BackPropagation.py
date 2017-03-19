@@ -10,6 +10,7 @@ class BackPropagation():
     def __init__(self, train_set, val_set, test_set, network):
         self.BIAS = 1
         self.P = 0.1
+        self.learning_rate = 0.9
         self.train_set = train_set
         self.val_set = val_set
         self.test_set = test_set
@@ -18,6 +19,7 @@ class BackPropagation():
         self.predictions = np.array([])
         self.msre = None
         self.rmse = None
+        self.momentum = False
     
     def forward_pass(self, inp):
         # clear previous values
@@ -51,12 +53,21 @@ class BackPropagation():
         
     def update(self, perceptron):
         # update every weight linked to the perceptron using deltas
-        perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
+        if self.momentum:
+            # apply momentum
+            weight_new = np.array([])
+            weight_changed = np.array([])
+            weight_new = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
+            weight_changed = weight_new - perceptron.weights
+            perceptron.weights = weight_new + (self.learning_rate * weight_changed)
+        else:
+            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
         return perceptron
     
-    def train(self, epoch=1):
+    def train(self, epoch=1, momentum=False):
         self.msre = np.zeros(epoch)
         self.rmse = np.zeros(epoch)
+        self.momentum = momentum
         for i in range(epoch):
             for feature, label in zip(self.train_set.features, self.train_set.label):
                 self.forward_pass(feature)
