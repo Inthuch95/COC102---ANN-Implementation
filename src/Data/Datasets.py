@@ -14,7 +14,8 @@ class datasets():
         self.max_label = max_label
         self.min_label = min_label
     
-    def de_standardise(self):
-        for i in range(0, len(self.label)):
-            self.label[i] = (((self.label[i] - 0.1)/(0.8)) * (self.max_label[-1] - self.min_label[-1])) 
-            + self.min_label[-1]
+    def de_standardise(self, label):
+        for i in range(0, len(label)):
+            label[i] = (((label[i] - 0.1)/(0.8)) * (self.max_label - self.min_label)) 
+            + self.min_label
+        return label
