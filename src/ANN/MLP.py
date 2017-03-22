@@ -10,6 +10,7 @@ class Perceptron():
     def __init__(self, n_inputs ):
         self.n_inputs = n_inputs
         self.set_weights( np.array([random.uniform(-2./n_inputs,2./n_inputs) for _ in range(0,n_inputs+1)])) # +1 for bias weight
+        self.delta_weights = np.zeros(n_inputs+1)
         self.delta = None
         self.u = None
 

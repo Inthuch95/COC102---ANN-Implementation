@@ -5,7 +5,6 @@ Created on Feb 20, 2017
 '''
 import numpy as np
 from math import sqrt
-import pandas as pd
 
 class BackPropagation():
     def __init__(self, train_set, val_set, test_set, network):
@@ -19,16 +18,22 @@ class BackPropagation():
         self.u = None
         self.predictions = np.array([])
         self.msre = None
-        self.rmse = None
+        self.rmse = np.array([])
         self.ce = None
         self.rsqr = None
-        self.train_rmse = None
+        self.train_rmse = np.array([])
         self.train_msre = None
         self.train_ce = None
         self.train_rsqr = None
         self.momentum = False
         self.sa = False
         self.bold_drv = False
+        self.current_epoch = 0
+        self.epoch = 0
+        self.max_lr = None
+        self.min_lr = None
+        self.min_error = 1
+        self.best_network = network
     
     def forward_pass(self, inp):
         # clear previous values
@@ -61,80 +66,62 @@ class BackPropagation():
             self.network.layers[1].perceptrons[i-1] = self.update(self.network.layers[1].perceptrons[i-1])
         
     def update(self, perceptron):
-        # Simulated annealing
-        # q = learning rate
-        # p = step decay
-        # r = total number of epoch
-        # x = weight?
-        
         # update every weight linked to the perceptron using deltas
         if self.momentum:
             # apply momentum
-            weight_new = np.array([])
-            weight_changed = np.array([])
-            weight_new = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
-            weight_changed = weight_new - perceptron.weights
-            perceptron.weights = weight_new + (self.learning_rate * weight_changed)
+            weight_old = np.array([])
+            weight_old = perceptron.weights
+            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u) + (self.learning_rate * perceptron.delta_weights) 
+            perceptron.delta_weights = perceptron.weights - weight_old
         elif self.bold_drv:
-            pass
+            print("BOLD DRIVER DOES NOT WORK!")
         elif self.sa:
-            self.simulated_annealing()
+            # Simulated annealing
+            # p = minimum learning rate
+            # q = maximum learning rate
+            # r = epochs
+            # x = current epoch
+            r = 15000
+            exp = 10 - ((20*self.current_epoch)/r)
+            self.learning_rate = self.min_lr + (self.max_lr - self.min_lr) * (1 - (1/(1 + np.e**exp)))
+            weight_old = np.array([])
+            weight_old = perceptron.weights
+            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u) + (self.learning_rate * perceptron.delta_weights) 
+            perceptron.delta_weights = perceptron.weights - weight_old
         else:
             perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
         return perceptron
     
-    def simulated_annealing(self):
-        print("simulated annealing")
-    
-    def train(self, epoch=1, momentum=False, sa=False):
-        self.msre = np.zeros(epoch)
-        self.rmse = np.zeros(epoch)
-        self.ce = np.zeros(epoch)
-        self.rsqr = np.zeros(epoch)
-        
-        self.train_msre = np.zeros(epoch)
-        self.train_rmse = np.zeros(epoch)
-        self.train_ce = np.zeros(epoch)
-        self.train_rsqr = np.zeros(epoch)
+    def train(self, epoch=1000, momentum=False, sa=False, max_lr=1., min_lr=0.01):
         self.momentum = momentum
         self.sa = sa
+        self.epoch = self.epoch + epoch
+        self.max_lr = max_lr
+        self.min_lr = min_lr
         for i in range(epoch):
+            self.current_epoch = (self.epoch - epoch) + i
             for feature, label in zip(self.train_set.features, self.train_set.label):
                 self.forward_pass(feature)
                 self.backward_pass(label)
-            # calculate validation set error
-            self.predict(self.val_set.features)
-            self.msre[i] = self.calculate_msre(i, self.val_set.label)
-            self.rmse[i] = self.calculate_rmse(i, self.val_set.label)
-            self.ce[i] = self.calculate_rsqr(i, self.val_set.label)
-            self.rsqr[i] = self.calculate_ce(i, self.val_set.label)
-            
+                
             # calculate training set error
             self.predict(self.train_set.features)
-            self.train_msre[i] = self.calculate_msre(i, self.train_set.label)
-            self.train_rmse[i] = self.calculate_rmse(i, self.train_set.label)
-            self.train_ce[i] = self.calculate_rsqr(i, self.train_set.label)
-            self.train_rsqr[i] = self.calculate_ce(i, self.train_set.label)
+            self.train_rmse = np.append(self.train_rmse, [self.calculate_rmse(self.train_set.label)])
+            # calculate validation set error
+            self.predict(self.val_set.features)
+            rmse = self.calculate_rmse(self.val_set.label)
+            self.rmse = np.append(self.rmse, [rmse])
+            if np.min(self.rmse) == rmse:
+                self.best_network = self.network
             #if ((i+1) % 2000) == 0:
-            print("epoch: ", str(i+1))
-        print("Training completed!")
-        modelled = pd.DataFrame(self.predictions)
-        observed = pd.DataFrame(self.val_set.label)
-        
-        errors_validation = pd.DataFrame(self.rmse, columns=["RMSE"])
-        errors_validation["MSRE"] = self.msre
-        errors_validation["CE"] = self.ce
-        errors_validation["R2"] = self.rsqr
-        modelled.to_csv("modelled.csv", header=False, index=False)
-        observed.to_csv("observed.csv", header=False, index=False)
-        errors_validation.to_csv("erors_validation.csv", index=False)
-        
-        errors_train = pd.DataFrame(self.rmse, columns=["RMSE"])
-        errors_train["MSRE"] = self.train_msre
-        errors_train["CE"] = self.train_ce
-        errors_train["R2"] = self.train_rsqr
-        errors_validation.to_csv("erors_train.csv", index=False)
-    
+            print("epoch: ", str(self.current_epoch+1))
+        min_error = np.min(self.rmse)
+        print([self.min_error, min_error])
+        if min_error < self.min_error:
+            self.min_error = min_error
+            self.train(epoch=epoch, momentum=self.momentum, sa=self.sa)  
+        self.min_error = min_error
+        self.network = self.best_network
     # make predictions using trained model     
     def predict(self, features):
         self.predictions = np.array([])
@@ -158,8 +145,9 @@ class BackPropagation():
         return np.mean(((self.predictions - data)/data)**2)
     
     # calculate root mean squared error from validation set    
-    def calculate_rmse(self, index, data):
-        return sqrt(np.mean((self.predictions - data)**2))
+    def calculate_rmse(self, data):
+        #return sqrt(np.mean((self.predictions - data)**2))
+        return np.sqrt(np.mean((self.predictions-data)**2))
         
     def calculate_ce(self, index, data):
         topVal = np.sum((self.predictions - data)**2)

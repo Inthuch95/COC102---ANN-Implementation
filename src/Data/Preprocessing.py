@@ -18,10 +18,10 @@ def data_cleansing(df):
     
     return df
 
-def remove_outliers(df, feature):
+def remove_outliers(df, feature, threshold=3):
     # eliminate outliers by keeping only the ones that are within 3 standard deviations
     # standard score, z-score
-    df = df[((df[feature] - np.mean(df[feature])) / np.std(df[feature])).abs() < 3]
+    df = df[((df[feature] - np.mean(df[feature])) / np.std(df[feature])).abs() < threshold]
     
     return df
 

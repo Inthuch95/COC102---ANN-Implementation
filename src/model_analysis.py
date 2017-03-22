@@ -4,12 +4,23 @@ Created on Mar 18, 2017
 @author: Inthuch Therdchanakul    
 '''
 import pickle
+import matplotlib.pyplot as plt
 
-with open("../Results/m_5_e20000/m_5_e20000.pickle", "rb") as f:
-    clf = pickle.load(f)
-    
-msre_val, msre_idx = min((msre_val, msre_idx) for (msre_idx, msre_val) in enumerate(clf.msre))
-rmse_val, rmse_idx = min((rmse_val, rmse_idx) for (rmse_idx, rmse_val) in enumerate(clf.rmse))
-print("index: %s, msre: %s" % (str(msre_idx), str(msre_val)))
-print("index: %s, rmse: %s" % (str(rmse_idx), str(rmse_val)))
-print(clf.network)
+training_type = "momentum"
+n_hidden_units = "3"
+epoch = "2000"
+
+path = "Simulations/" + training_type + "_" + n_hidden_units + "_e" + epoch + "/"
+predictions_filename = path + training_type + "_" + n_hidden_units + "_e" + epoch + "_PREDICTIONS.pickle"
+rmse_filename = path + training_type + "_" + n_hidden_units + "_e" + epoch + "_RMSE.pickle"
+clf_filename = path + training_type + "_" + n_hidden_units + "_e" + epoch + "_MODEL.pickle"
+with open(predictions_filename, "rb") as f:
+    predictions = pickle.load(f)
+with open(rmse_filename, "rb") as f:
+    rmse = pickle.load(f)  
+with open(clf_filename, "rb") as f:
+    clf = pickle.load(f)   
+
+print(clf.best_network)
+predictions.set_ylim(-100, 900)
+plt.show()
