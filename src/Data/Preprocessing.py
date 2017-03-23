@@ -6,21 +6,18 @@ Created on Feb 26, 2017
 import numpy as np
 
 def data_cleansing(df):
-    # change all string data to -999 so that they are considered to be outliers and get dropped later on 
+    # change all string data to -999 so that they will be removed along with other negative values
     df = df[~df.applymap(lambda x: isinstance(x, str))]  
-    # print("Before preprocessing: ", len(df))
     # drop missing data
     df.dropna(inplace=True)
-    # print("After dropping missing data: ", len(df))
     # drop negative values
     df = df[df.apply(lambda x: x >= 0).all(axis=1)]
-    # print("After dropping negative values: ", len(df))
-    
     return df
 
 def remove_outliers(df, feature, threshold=3):
-    # eliminate outliers by keeping only the ones that are within 3 standard deviations
-    # standard score, z-score
+    # z-score
+    # eliminate outliers by keeping only the ones that are within t standard deviations
+    # where t is a threshold variable
     df = df[((df[feature] - np.mean(df[feature])) / np.std(df[feature])).abs() < threshold]
     
     return df

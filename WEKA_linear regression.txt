@@ -1,0 +1,38 @@
+=== Run information ===
+
+Scheme:       weka.classifiers.functions.LinearRegression -S 0 -R 1.0E-8 -num-decimal-places 4
+Relation:     WEKA data-weka.filters.unsupervised.attribute.Remove-R3-5,7-8-weka.filters.unsupervised.attribute.Normalize-S1.0-T0.0
+Instances:    596
+Attributes:   4
+              ﻿AREA
+              BFIHOST
+              PROPWET
+              Index flood
+Test mode:    split 80.0% train, remainder test
+
+=== Classifier model (full training set) ===
+
+
+Linear Regression Model
+
+Index flood =
+
+    948.4279 * AREA +
+    -96.5404 * BFIHOST +
+    380.8906 * PROPWET +
+   -165.1114
+
+Time taken to build model: 0 seconds
+
+=== Evaluation on test split ===
+
+Time taken to test model on test split: 0 seconds
+
+=== Summary ===
+
+Correlation coefficient                  0.8605
+Mean absolute error                     50.3257
+Root mean squared error                 83.5505
+Relative absolute error                 48.2977 %
+Root relative squared error             51.166  %
+Total Number of Instances              119 

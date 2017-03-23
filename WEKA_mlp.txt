@@ -1,0 +1,50 @@
+=== Run information ===
+
+Scheme:       weka.classifiers.functions.MultilayerPerceptron -L 0.3 -M 0.2 -N 500 -V 0 -S 0 -E 20 -H a
+Relation:     WEKA data-weka.filters.unsupervised.attribute.Remove-R3-5,7-8-weka.filters.unsupervised.attribute.Normalize-S1.0-T0.0
+Instances:    596
+Attributes:   4
+              ﻿AREA
+              BFIHOST
+              PROPWET
+              Index flood
+Test mode:    split 80.0% train, remainder test
+
+=== Classifier model (full training set) ===
+
+Linear Node 0
+    Inputs    Weights
+    Threshold    -0.03773326196072205
+    Node 1    0.8004893240661958
+    Node 2    -0.5598491279234958
+Sigmoid Node 1
+    Inputs    Weights
+    Threshold    2.0627353046757615
+    Attrib ﻿AREA    4.565756233001882
+    Attrib BFIHOST    -0.7669484380471449
+    Attrib PROPWET    2.0226487842495415
+Sigmoid Node 2
+    Inputs    Weights
+    Threshold    -2.1393339476835616
+    Attrib ﻿AREA    -0.49685088219831586
+    Attrib BFIHOST    0.06593883348466277
+    Attrib PROPWET    2.2632843275776486
+Class 
+    Input
+    Node 0
+
+
+Time taken to build model: 0.12 seconds
+
+=== Evaluation on test split ===
+
+Time taken to test model on test split: 0 seconds
+
+=== Summary ===
+
+Correlation coefficient                  0.8886
+Mean absolute error                     48.1624
+Root mean squared error                 74.9671
+Relative absolute error                 46.2215 %
+Root relative squared error             45.9096 %
+Total Number of Instances              119  

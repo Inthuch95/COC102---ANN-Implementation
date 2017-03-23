@@ -4,27 +4,19 @@ Created on Feb 20, 2017
 @author: Inthuch Therdchanakul
 '''
 import numpy as np
-from math import sqrt
 
 class BackPropagation():
     def __init__(self, train_set, val_set, test_set, network):
         self.BIAS = 1
-        self.P = 0.1
-        self.learning_rate = 0.9
+        self.learning_rate = 0.1
         self.train_set = train_set
         self.val_set = val_set
         self.test_set = test_set
         self.network = network
         self.u = None
         self.predictions = np.array([])
-        self.msre = None
         self.rmse = np.array([])
-        self.ce = None
-        self.rsqr = None
         self.train_rmse = np.array([])
-        self.train_msre = None
-        self.train_ce = None
-        self.train_rsqr = None
         self.momentum = False
         self.sa = False
         self.bold_drv = False
@@ -71,28 +63,22 @@ class BackPropagation():
             # apply momentum
             weight_old = np.array([])
             weight_old = perceptron.weights
-            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u) + (self.learning_rate * perceptron.delta_weights) 
+            perceptron.weights = perceptron.weights + (self.learning_rate * perceptron.delta * perceptron.u) + (0.9 * perceptron.delta_weights) 
             perceptron.delta_weights = perceptron.weights - weight_old
         elif self.bold_drv:
             print("BOLD DRIVER DOES NOT WORK!")
         elif self.sa:
-            # Simulated annealing
-            # p = minimum learning rate
-            # q = maximum learning rate
-            # r = epochs
-            # x = current epoch
             r = 15000
             exp = 10 - ((20*self.current_epoch)/r)
             self.learning_rate = self.min_lr + (self.max_lr - self.min_lr) * (1 - (1/(1 + np.e**exp)))
             weight_old = np.array([])
             weight_old = perceptron.weights
-            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u) + (self.learning_rate * perceptron.delta_weights) 
-            perceptron.delta_weights = perceptron.weights - weight_old
+            perceptron.weights = perceptron.weights + (self.learning_rate * perceptron.delta * perceptron.u) 
         else:
-            perceptron.weights = perceptron.weights + (self.P * perceptron.delta * perceptron.u)
+            perceptron.weights = perceptron.weights + (self.learning_rate * perceptron.delta * perceptron.u)
         return perceptron
     
-    def train(self, epoch=1000, momentum=False, sa=False, max_lr=1., min_lr=0.01):
+    def train(self, epoch=1000, momentum=False, sa=False, max_lr=0.9, min_lr=0.01, stop_detection=True):
         self.momentum = momentum
         self.sa = sa
         self.epoch = self.epoch + epoch
@@ -103,7 +89,6 @@ class BackPropagation():
             for feature, label in zip(self.train_set.features, self.train_set.label):
                 self.forward_pass(feature)
                 self.backward_pass(label)
-                
             # calculate training set error
             self.predict(self.train_set.features)
             self.train_rmse = np.append(self.train_rmse, [self.calculate_rmse(self.train_set.label)])
@@ -113,15 +98,18 @@ class BackPropagation():
             self.rmse = np.append(self.rmse, [rmse])
             if np.min(self.rmse) == rmse:
                 self.best_network = self.network
-            #if ((i+1) % 2000) == 0:
-            print("epoch: ", str(self.current_epoch+1))
+            if ((i+1) % 200) == 0:
+                print("epoch: %s\t min_rmse: %s\t hidden_units: %s" % (str(self.current_epoch+1), str(np.min(self.rmse)), str(self.network.n_perceptrons_to_hl)))
         min_error = np.min(self.rmse)
-        print([self.min_error, min_error])
-        if min_error < self.min_error:
-            self.min_error = min_error
-            self.train(epoch=epoch, momentum=self.momentum, sa=self.sa)  
+        if stop_detection:
+            # if the error is getting worse then stop training
+            print(self.min_error-min_error)
+            if min_error < self.min_error:
+                self.min_error = min_error
+                self.train(epoch=epoch, momentum=self.momentum, sa=self.sa)  
         self.min_error = min_error
         self.network = self.best_network
+        
     # make predictions using trained model     
     def predict(self, features):
         self.predictions = np.array([])
@@ -140,30 +128,10 @@ class BackPropagation():
                 feature = np.append([self.BIAS], output)
             self.predictions = np.append(self.predictions, output)
             
-    # calculate mean squared relative error from validation set
-    def calculate_msre(self, index, data):
-        return np.mean(((self.predictions - data)/data)**2)
-    
     # calculate root mean squared error from validation set    
     def calculate_rmse(self, data):
         #return sqrt(np.mean((self.predictions - data)**2))
         return np.sqrt(np.mean((self.predictions-data)**2))
-        
-    def calculate_ce(self, index, data):
-        topVal = np.sum((self.predictions - data)**2)
-        bottomVal = np.sum((data - np.mean(data))**2)
-        return 1 - (topVal/bottomVal)
-        
-    def calculate_rsqr(self, index, data):
-        x = self.predictions
-        y = data
-        x_y = x * y
-        x_sqr = x**2
-        y_sqr = y **2
-        n = len(self.predictions)
-        rTop = ((n * np.sum(x_y)) - (np.sum(x) * np.sum(y)))
-        rBottom = sqrt((n * np.sum(x_sqr) - (np.sum(x)**2)) * (n * np.sum(y_sqr) - (np.sum(y)**2) ))
-        return (rTop/rBottom)**2
     
     # activation function
     def sigmoid_function(self, s, derivative=False):

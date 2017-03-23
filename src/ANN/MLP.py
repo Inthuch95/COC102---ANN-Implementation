@@ -35,15 +35,13 @@ class MLP():
         self.n_hidden_layers = n_hidden_layers
         self.n_perceptrons_to_hl = n_perceptrons_to_hl
 
-        # Do not touch
         self.create_network()
         self._n_weights = None
         # end
 
     def create_network(self):
         if self.n_hidden_layers>0:
-            # create the first layer
-            # ignore the weights here!
+            # create the input layer
             self.layers = [PerceptronLayer( self.n_inputs,self.n_inputs )]
 
             # create hidden layers
